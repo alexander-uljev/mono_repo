@@ -32,7 +32,7 @@ end
 
 In order to run tests, test_intallation archive must be unzipped to the root
 directory. Tests for build module can succeed only by running from 
-app_root/apps/app1/apps/app00
+*app_root/apps/app1/apps/app00*
 
 ## License
 
