@@ -35,6 +35,6 @@ MIT
 
 ### Metadata
 
-author:       Alexander Ulyev
-email:        aleksandr.uljev@yandex.ru
-release date: 29.04.2020
+-author:       Alexander Ulyev
+-email:        aleksandr.uljev@yandex.ru
+-release date: 29.04.2020
