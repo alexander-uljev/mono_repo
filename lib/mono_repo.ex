@@ -31,6 +31,22 @@ defmodule MonoRepo do
   Applications should be nested in parent's apps folders. For example: "app0/
   apps/app1/apps/app2".
 
+  ### Using
+
+  `MonoRepo` is not a part of the mix application, so it is not loaded at the
+  moment when mix.exs is being read. There are two ways of fixing that:
+  1. append `MonoRepo`'s beam files' path before making calls to it. Use `Code`
+  module:
+  ```elixir
+  true = Code.append_path("_build/${env}/lib/mono_repo/ebin")
+  ```
+  So the :mono_repo dependency must be compiled before doing this.
+
+  2. Put `MonoRepo` codes under `Mix.Project` namespace, compile them, copy to
+  mix lib folder(`/usr/lib/elixir/lib/mix/ebin/` on my machine) and add alien
+  modules to modules list in `mix.app`. This is dirty and unrecommended but
+  effective.
+
   ### Build
 
   Umbrella's documentation recommends keeping child application configuration in
@@ -49,19 +65,30 @@ defmodule MonoRepo do
 
   ### Test
 
-  Testing all the folded applications at any level made possible by
-  `MonoRepo.Test.build_test_paths/0`. Assign your *:test_paths* key in the root
-  umbrella application to build_test_paths() and running 'mix test' will run all
-  tests in all child applications. Step one level into apps folder and run it
-  again to get -1 level of applications to test.
+  It is possible to run all children's tests at once by proper using
+  `MonoRepo.Test`'s module's functions. The general recomendation is to use the
+  root level project folder mainly for testing purposes.
+
+  1. Build a united configuration by running `MonoRepo.Test.build_config_files()`.
+  This will traverse the root application's tree and copy all *config.exs* and
+  *test.exs* configuration files into two single files at *./config* path.
+  `MonoRepo.Test.build_test_paths/0`.
+  2. Assign *:test_paths* key in the root application to
+  `MonoRepo.Test.build_test_paths/0`.
+  3. Assign *:deps* key to `MonoRepo.Test.build_deps/0`. If you need to define
+  other dependencies, you can do it in a standard way within *deps/0* function
+  and concatenate both lists with `++` operator.
+
+  Now run 'mix test' to run all tests in all child applications. Step one level
+  into apps folder, repeat the setup and run it again to get -1 level of
+  applications to test.
 
   If you use *:apps_path* key in your `Mix.Project` declaration, testing won't be
   available, even direct calls to test files won't work. The workaround is to have
   a separate *mix.exs* file or to comment out the *:apps_path* line meanwhile testing.
 
-  Testing requires applications and their dependencies to be started. In order
-  to do that, use `build_deps/0` function of this module as a value of *:deps* key
-  . It will load and start all applications prior testing.
+  Testing requires applications and their dependencies to be started. That's why
+  we use `build_deps/0` as value of *:deps* key.
 
   ### Release
 
@@ -95,21 +122,6 @@ defmodule MonoRepo do
   end
   ...
   ```
-  ### Using
-
-  `MonoRepo` is not a part of the mix application, so it is not loaded at the
-  moment when mix.exs is being read. There are two ways of fixing that:
-  1. append `MonoRepo`'s beam files' path before making calls to it. Use `Code`
-  module:
-  ```elixir
-  true = Code.append_path("_build/${env}/lib/mono_repo/ebin")
-  ```
-  So the :mono_repo dependency must be compiled before doing this.
-
-  2. Put `MonoRepo` codes under `Mix.Project` namespace, compile them, copy to
-  mix lib folder(`/usr/lib/elixir/lib/mix/ebin/` on my machine) and add alien
-  modules to modules list in `mix.app`. This is dirty and unrecommended but
-  effective.
   """
 
   @typedoc """
