@@ -40,11 +40,13 @@ defmodule MonoRepo do
   ```elixir
   true = Code.append_path("_build/dev/lib/mono_repo/ebin")
   ```
-  So the :mono_repo dependency must be compiled before doing this.
+  Be sure the :mono_repo dependency is compiled before using any of it's modules
+  .
 
   2. Put `MonoRepo` codes under `Mix.Project.MonoRepo` namespace, compile them,
   copy to mix lib folder(`/usr/lib/elixir/lib/mix/ebin/` on my machine) and add
-  alien modules to modules list in `mix.app`. This is dirty and unrecommended but
+  alien modules to modules list in `mix.app`. After those manipulations, you
+  would be able to import `MonoRepo` modules. This is dirty and unrecommended but
   very convinient and effective.
 
   ### Build
@@ -98,17 +100,21 @@ defmodule MonoRepo do
   Release does not hack or alter Mix.Release functionality.
   To make a release you must describe it in *rel/definitions.exs* following
   instructions in `MonoRepo.Release` module. *rel/"release name".exs* must hold
-  a regular application configuration specific for your release. rel/mix.exs must
-  declare a MixProject suitable for releasing: *:deps* key must be set to
-  `MonoRepo.Release.build_deps/0` and *:releases* - to
-  `MonoRepo.Release.build_releases/0`, *:config_path* to
-  `MonoRepo.Release.build_config_path/0` as a compile-time configuration. This way
-  your app file will get only necessary arguments and your VM won't get rebooted
+  a regular application configuration specific for your release. *rel/mix.exs* must
+  declare a MixProject suitable for releasing:
+  1. *:deps* key must be set to `MonoRepo.Release.build_deps/0`
+  2. *:releases* - to `MonoRepo.Release.build_releases/0`
+  3.  *:config_path* to `MonoRepo.Release.build_config_path/0` as a compile-time
+  configuration.
+  This way your app file will get only necessary arguments and your VM won't get rebooted
   after configuration loading unless you use releases.exs configuration as well.
-  If you need run-time configuration, release.exs will be searched and loaded by
-  `Mix.Release`. If you've got any other dependencies, you can define them in
-  *deps/0* as usual and concatenate that list on release dependencies, like that
-  : `deps: deps() ++ build_deps()` .
+  Keep *mono_repo* as a dependency in release mix project file to avoid erasing
+  it's beam files.
+
+  If you need run-time configuration, release.exs will be searched in *config*
+  folder and loaded by `Mix.Release`. If you've got any other dependencies, you
+  can define them in *deps/0* as usual and concatenate that list on release
+  dependencies, like that: `deps: deps() ++ build_deps()` .
 
   *mix.exs* sample:
   ```elixir
@@ -119,11 +125,18 @@ defmodule MonoRepo do
     [
       ...
       config_path: build_config_path(),
-      deps: build_deps(),
+      deps: build_deps() ++ deps(),
       releases: build_releases()
     ]
   end
+
+  defp deps do
+    [
+      {:mono_repo, path: "../mono_repo", only: [:dev, :prod], runtime: false},
+    ]
+  end
   ...
+
   ```
   """
 
