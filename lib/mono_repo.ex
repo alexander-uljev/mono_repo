@@ -38,16 +38,24 @@ defmodule MonoRepo do
   1. append `MonoRepo`'s beam files' path before making calls to it. Use `Code`
   module:
   ```elixir
-  true = Code.append_path("_build/${env}/lib/mono_repo/ebin")
+  true = Code.append_path("_build/dev/lib/mono_repo/ebin")
   ```
   So the :mono_repo dependency must be compiled before doing this.
 
-  2. Put `MonoRepo` codes under `Mix.Project` namespace, compile them, copy to
-  mix lib folder(`/usr/lib/elixir/lib/mix/ebin/` on my machine) and add alien
-  modules to modules list in `mix.app`. This is dirty and unrecommended but
-  effective.
+  2. Put `MonoRepo` codes under `Mix.Project.MonoRepo` namespace, compile them,
+  copy to mix lib folder(`/usr/lib/elixir/lib/mix/ebin/` on my machine) and add
+  alien modules to modules list in `mix.app`. This is dirty and unrecommended but
+  very convinient and effective.
 
   ### Build
+
+  Most of the times you'll want to keep all the dependencies and build artefacts
+  at one place to avoid duplicating, version mismatching and curly paths manual
+  searches. You can do so by:
+
+  1. Assigning *:build_path* to `MonoRepo.Build.build_path/0`.
+  2. Assigning *:deps_path*  to `MonoRepo.Build.build_deps_path/0`.
+  3. Assigning ":lockfile" to `MonoRepo.Build.build_lockfile_path/0`.
 
   Umbrella's documentation recommends keeping child application configuration in
   parent's one. If you feel like doing that, you can use
@@ -55,13 +63,8 @@ defmodule MonoRepo do
   your application is deeply nested, it can be tedious and error prone to type
   dots in the path to a parent app. Consider typing *build_config_path()* instead of
   *"../../../../../../config/config.exs"*. Personally I prefer to have application's
-  configuration at hands. For releasing a build a separate configuration file can
-  be declared.
-
-  Most of the times you'll want to keep all the dependencies and build artefacts
-  at one place to avoid duplicating, version mismatching and curly paths manual
-  searches. You can do so by using `MonoRepo.Build.build_deps_path/0` and
-  `MonoRepo.Build.build_path/0`.
+  configuration at hands. For releasing a build a separate configuration file is
+  declared.
 
   ### Test
 
