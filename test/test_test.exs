@@ -13,6 +13,13 @@ defmodule MonoRepo.TestTest do
     ]
   end
 
+  test "building dependencies list" do
+    assert build_deps() == [
+      {:app0, path: "apps/app0"},
+      {:app00, path: "apps/app1/apps/app00"}
+    ]
+  end
+
   test "raising in case of child not found or parent equals child" do
     assert_raise RuntimeError, fn -> build_test_paths("app_doesnt_exist") end
     assert_raise RuntimeError, fn -> build_test_paths("app_root") end

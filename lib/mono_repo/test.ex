@@ -20,6 +20,7 @@ defmodule MonoRepo.Test do
   def build_test_paths() do
     get_apps_paths()
     |> add_apps_of_app()
+    |> List.flatten()
     |> add_test_dir()
   end
 
@@ -38,6 +39,24 @@ defmodule MonoRepo.Test do
       |> get_child_path!()
       |> add_test_dir
     [path]
+  end
+
+  @doc """
+  Builds dependencies list to support testing.
+
+  This function **MUST** be used together with `build_test_paths/0` in order to
+  start all applications before tests evaluation.
+  """
+  @spec build_deps() :: [{Application.app(), path: Path.t()}]
+
+  def build_deps() do
+    paths = get_apps_paths()
+     |> add_apps_of_app()
+     |> List.flatten()
+    for path <- paths do
+      name = get_app_name(path)
+      {name, path: path}
+    end
   end
 
   ### PRIVATE ###
@@ -89,6 +108,14 @@ defmodule MonoRepo.Test do
       path
       |> Path.join("apps")
       |> File.exists?()
+  end
+
+  @spec get_app_name(Path.t()) :: Application.app()
+  defp get_app_name(path) do
+    path
+    |> Path.split()
+    |> List.last()
+    |> String.to_atom()
   end
 
   @spec get_child_path!(MonoRepo.child()) :: String.t() | RuntimeError

@@ -52,11 +52,16 @@ defmodule MonoRepo do
   Testing all the folded applications at any level made possible by
   `MonoRepo.Test.build_test_paths/0`. Assign your *:test_paths* key in the root
   umbrella application to build_test_paths() and running 'mix test' will run all
-  tests in all child applications. Step one level into apps folder and run it again to
-  get -1 level of applications to test. If you use both `$1` and *:app* keys
-  in your Mix.project declaration, testing will be available only for child app.
-  Even direct call to test file won't work. The workaround is to have a separate
-  mix.exs file or to comment out the *:apps_path* line meanwhile testing.
+  tests in all child applications. Step one level into apps folder and run it
+  again to get -1 level of applications to test.
+
+  If you use *:apps_path* key in your `Mix.Project` declaration, testing won't be
+  available, even direct calls to test files won't work. The workaround is to have
+  a separate *mix.exs* file or to comment out the *:apps_path* line meanwhile testing.
+
+  Testing requires applications and their dependencies to be started. In order
+  to do that, use `build_deps/0` function of this module as a value of *:deps* key
+  . It will load and start all applications prior testing.
 
   ### Release
 
@@ -71,7 +76,9 @@ defmodule MonoRepo do
   your app file will get only necessary arguments and your VM won't get rebooted
   after configuration loading unless you use releases.exs configuration as well.
   If you need run-time configuration, release.exs will be searched and loaded by
-  `Mix.Release`.
+  `Mix.Release`. If you've got any other dependencies, you can define them in
+  *deps/0* as usual and concatenate that list on release dependencies, like that
+  : `deps: deps() ++ build_deps()` .
 
   *mix.exs* sample:
   ```elixir
@@ -88,6 +95,21 @@ defmodule MonoRepo do
   end
   ...
   ```
+  ### Using
+
+  `MonoRepo` is not a part of the mix application, so it is not loaded at the
+  moment when mix.exs is being read. There are two ways of fixing that:
+  1. append `MonoRepo`'s beam files' path before making calls to it. Use `Code`
+  module:
+  ```elixir
+  true = Code.append_path("_build/${env}/lib/mono_repo/ebin")
+  ```
+  So the :mono_repo dependency must be compiled before doing this.
+
+  2. Put `MonoRepo` codes under `Mix.Project` namespace, compile them, copy to
+  mix lib folder(`/usr/lib/elixir/lib/mix/ebin/` on my machine) and add alien
+  modules to modules list in `mix.app`. This is dirty and unrecommended but
+  effective.
   """
 
   @typedoc """

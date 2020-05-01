@@ -18,8 +18,7 @@ defmodule MonoRepo.MixProject do
   def package do
     [
       maintainers: ["Alexander Ulyev"],
-      name: "MonoRepo",
-      licences: ["MIT"],
+      licenses: ["MIT"],
       links: links()
     ]
   end
@@ -35,7 +34,7 @@ defmodule MonoRepo.MixProject do
   end
 
   defp description do
-    "A library to work with mix mono repos."
+    "A library to work with mono repositories."
   end
 
   defp deps do
