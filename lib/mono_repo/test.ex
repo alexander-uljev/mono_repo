@@ -18,10 +18,7 @@ defmodule MonoRepo.Test do
   @spec build_test_paths() :: [String.t()]
 
   def build_test_paths() do
-    get_apps_paths()
-    |> add_apps_of_app()
-    |> List.flatten()
-    |> add_test_dir()
+    build_apps_paths() |> add_test_dir()
   end
 
   @doc """
@@ -50,16 +47,40 @@ defmodule MonoRepo.Test do
   @spec build_deps() :: [{Application.app(), path: Path.t()}]
 
   def build_deps() do
-    paths = get_apps_paths()
-     |> add_apps_of_app()
-     |> List.flatten()
+    paths = build_apps_paths()
     for path <- paths do
       name = get_app_name(path)
       {name, path: path}
     end
   end
 
+  @doc """
+  Assembles all configuration files of all application's children into one.
+
+  Runs this procedure for cofig.exs and test.exs files found in children's *config*
+  folders and writes assembled config.exs and test.exs to application's root
+  folder, to *conig* subfolder.
+  """
+  @spec build_config_files() :: :ok
+
+  def build_config_files() do
+    paths = build_apps_paths() |> add_config_dir()
+    paths
+    |> build_config_exs()
+    |> write_config_exs()
+    paths
+    |> build_test_exs()
+    |> write_test_exs()
+  end
+
   ### PRIVATE ###
+
+  @spec build_apps_paths() :: [Path.t()]
+  defp build_apps_paths do
+    get_apps_paths()
+    |> add_apps_of_app()
+    |> List.flatten()
+  end
 
   @spec get_apps_paths() :: [String.t()]
   defp get_apps_paths() do
@@ -97,6 +118,11 @@ defmodule MonoRepo.Test do
   @spec add_test_dir(String.t()) :: String.t()
   defp add_test_dir(path) when is_binary(path) do
     append_test_dir(path)
+  end
+
+  @spec add_config_dir([Path.t()]) :: [Path.t()]
+  defp add_config_dir(paths) do
+    for path <- paths, do: Path.join(path, "config")
   end
 
   @spec append_test_dir(String.t()) :: String.t()
@@ -159,4 +185,114 @@ defmodule MonoRepo.Test do
     |> Enum.map(& Path.absname(&1, target))
   end
 
+  @spec build_config_exs([Path.t()]) :: IO.chardata()
+  defp build_config_exs(paths) do
+    paths
+    |> collect_config_exs()
+    |> prepend_conf_import()
+    |> append_conf_import()
+  end
+
+  @spec build_test_exs([Path.t()]) :: IO.chardata()
+  defp build_test_exs(paths) do
+    paths
+    |> collect_test_exs()
+    |> prepend_conf_import()
+  end
+
+  @spec collect_config_exs([Path.t()]) :: IO.chardata()
+  defp collect_config_exs(paths) do
+    for path <- paths, reduce: [] do
+      acc ->
+        path = Path.join(path, "config.exs")
+        {status, data} = File.read(path)
+        if status == :ok do
+          data =
+            data
+            |> delete_first_line()
+            |> delete_last_line()
+            |> append_double_new_line()
+          [data | acc]
+        else
+          acc
+        end
+    end
+  end
+
+  @spec append_conf_import(IO.chardata()) :: IO.chardata()
+  defp append_conf_import(data) do
+    line = ~S/import_config "#{Mix.env()}.exs"/
+    data ++ [line, "\n\n"]
+  end
+
+  @spec prepend_conf_import(IO.chardata()) :: IO.chardata()
+  defp prepend_conf_import(data) do
+    line = "import Config\n\n"
+    [line | data]
+  end
+
+  @spec collect_test_exs([Path.t()]) :: IO.chardata()
+  defp collect_test_exs(paths) do
+    for path <- paths, reduce: [] do
+      acc ->
+        path = Path.join(path, "test.exs")
+        {status, data} = File.read(path)
+        if status == :ok do
+          data =
+            data
+            |> delete_first_line()
+            |> append_double_new_line()
+          [data | acc]
+        else
+          acc
+        end
+    end
+  end
+
+  @spec delete_first_line(String.t()) :: String.t()
+  defp delete_first_line(data) do
+    line0 = ~s/import Config/
+    line1 = ~s/use Mix.Config/
+    data
+    |> delete_line(line0)
+    |> delete_line(line1)
+    |> String.trim_leading()
+  end
+
+  @spec delete_last_line(String.t()) :: String.t()
+  defp delete_last_line(data) do
+    line = ~S/import_config "#{Mix.env()}.exs"/
+    delete_line(data, line)
+  end
+
+  @spec append_double_new_line(String.t()) :: String.t()
+  defp append_double_new_line(data) do
+    data
+    |> String.trim_trailing()
+    |> append_new_line()
+    |> append_new_line()
+  end
+
+  @spec append_new_line(String.t()) :: String.t()
+
+  defp append_new_line(data), do: Enum.join([data, "\n"])
+
+  @spec delete_line(String.t(), String.t()) :: String.t()
+
+  defp delete_line(data, line), do: String.replace(data, line, "")
+
+  @spec write_config_exs(IO.chardata()) :: :ok
+  defp write_config_exs(data) do
+    write_file!("config/config.exs", data)
+  end
+
+  @spec write_test_exs(IO.chardata()) :: :ok
+  defp write_test_exs(data) do
+    write_file!("config/test.exs", data)
+  end
+
+  @spec write_file!(Path.t(), IO.chardata()) :: :ok
+  defp write_file!(path, data) do
+    File.write!(path, data, [:utf8])
+  end
 end
