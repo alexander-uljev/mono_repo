@@ -7,11 +7,11 @@ defmodule MonoRepo.BuildTest do
   """
 
   test "returning building path for target parent app" do
-    assert build_path("app1") == "../../app1/_build"
+    assert build_path("app1") == "../../_build"
   end
 
   test "returning building path for root app" do
-    assert build_path() == "../../../../app_root/_build"
+    assert build_path() == "../../../../_build"
   end
 
   test "raising in case build path can't be computed" do
@@ -19,11 +19,11 @@ defmodule MonoRepo.BuildTest do
   end
 
   test "returning configuration path for target parent app" do
-    assert build_config_path("app1") == "../../app1/config/config.exs"
+    assert build_config_path("app1") == "../../config/config.exs"
   end
 
   test "returning configuration path for root app" do
-    assert build_config_path() == "../../../../app_root/config/config.exs"
+    assert build_config_path() == "../../../../config/config.exs"
   end
 
   test "raising in case configuration path can't be computed" do
@@ -31,11 +31,11 @@ defmodule MonoRepo.BuildTest do
   end
 
   test "returning deps path for target parent app" do
-    assert build_deps_path("app1") == "../../app1/deps"
+    assert build_deps_path("app1") == "../../deps"
   end
 
   test "returning deps path for root app" do
-    assert build_deps_path() == "../../../../app_root/deps"
+    assert build_deps_path() == "../../../../deps"
   end
 
   test "raising in case deps path can't be computed" do
@@ -43,11 +43,11 @@ defmodule MonoRepo.BuildTest do
   end
 
   test "returning lockfile path for target parent app" do
-    assert build_lockfile_path("app1") == "../../app1/mix.lock"
+    assert build_lockfile_path("app1") == "../../mix.lock"
   end
 
   test "returning lockfile path for root app" do
-    assert build_lockfile_path() == "../../../../app_root/mix.lock"
+    assert build_lockfile_path() == "../../../../mix.lock"
   end
 
   test "raising in case lockfile path can't be computed" do

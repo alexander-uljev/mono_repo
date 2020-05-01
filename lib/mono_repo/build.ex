@@ -117,8 +117,7 @@ defmodule MonoRepo.Build do
     if exists?(parent_apps) do
       get_parent_path(parent)
     else
-      app_name = get_parent_name(path)
-      append_path(path, app_name)
+      path
     end
   end
 
@@ -146,8 +145,7 @@ defmodule MonoRepo.Build do
         parent_path = parent_path(parent_path)
         match_parent_path(parent_path, target)
       else
-        app_name = get_parent_name(parent_path)
-        append_path(parent_path, app_name)
+        parent_path
       end
     else
       nil
