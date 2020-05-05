@@ -17,7 +17,9 @@ defmodule MonoRepo.Release do
   should be used for *:config_path* attribute of mix project configuration. This way
   you can keep release-specific configuration nice and tidy and do not load
   unnecessary configuration attributes. To make a release use MIX_EXS environment
-  variable set to the release MixProject file, for example:
+  variable set to the release MixProject file. `MonoRepo.Release` uses release name
+  command-line argument so **make sure you don't put any switches or arguments
+  before the name**. Usage:
 
   `MIX_EXS=rel/mix.exs mix release set0`
 
