@@ -65,6 +65,7 @@ defmodule MonoRepo.Test do
 
   def build_config_files() do
     paths = build_apps_paths() |> add_config_dir()
+    maybe_create_config_dir()
     paths
     |> build_config_exs()
     |> write_config_exs()
@@ -294,5 +295,10 @@ defmodule MonoRepo.Test do
   @spec write_file!(Path.t(), IO.chardata()) :: :ok
   defp write_file!(path, data) do
     File.write!(path, data, [:utf8])
+  end
+
+  @spec maybe_create_config_dir() :: :ok | nil
+  defp maybe_create_config_dir() do
+    unless File.exists?("config"), do: File.mkdir("config")
   end
 end
