@@ -114,7 +114,10 @@ defmodule MonoRepo do
   If you need run-time configuration, release.exs will be searched in *config*
   folder and loaded by `Mix.Release`. If you've got any other dependencies, you
   can define them in *deps/0* as usual and concatenate that list on release
-  dependencies, like that: `deps: deps() ++ build_deps()` .
+  dependencies, like that: `deps: deps() ++ build_deps()`.
+
+  `MonoRepo.Release` uses release name command-line argument so **make sure you
+   don't put any switches or arguments before the name**.
 
   *mix.exs* sample:
   ```elixir
