@@ -5,7 +5,7 @@ defmodule MonoRepo.MixProject do
     [
       app: :mono_repo,
       name: "MonoRepo",
-      version: "0.2.0",
+      version: "0.2.1",
       elixir: "~> 1.9",
       description: description(),
       package: package(),
